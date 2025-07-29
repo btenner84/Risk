@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer">State Analyzer</a></li>
+                <li><a href="/provider-analyzer" class="active">Provider Analyzer</a></li>
+                <li><a href="/unh-analyzer">UNH Acquisition Analyzer</a></li>
+                <li><a href="/performance-heatmap">Performance Heat Map</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Provider Acquisition Analyzer</h1>
+                <p class="page-description">Analyze risk score performance of UNH's acquired providers over time</p>
+            </header>
+            
+            <section id="provider-analyzer-controls" class="controls-section">
+                <div class="filter-group">
+                    <label for="provider-acquisition-select">UNH Acquisition:</label>
+                    <select id="provider-acquisition-select">
+                        <option value="davita_ca_2019">DaVita Medical Group (Optum California) - 8,030 providers ✅</option>
+                        <option value="caremont_ny_2022">CareMount / Optum NY - 1,865 providers ✅</option>
+                        <option value="polyclinic_wa_2018">The Polyclinic (WA) - 584 providers ✅</option>
+                        <option value="reliant_ma_2018">Reliant Medical Group (MA) - 468 providers ✅</option>
+                        <option value="oregon_medical_2022">Oregon Medical Group / Greenfield Health (OR) ✅</option>
+                        <option value="everett_clinic_wa_2019">The Everett Clinic (WA) - 451 providers ✅</option>
+                        <option value="sound_physicians_wa_2018">Sound Physicians (WA) - 508 providers ✅</option>
+                        <option value="kelsey_seybold_tx_2022">Kelsey-Seybold Clinic (TX) - Not yet captured</option>
+                        <option value="atrius_health_ma_2022">Atrius Health (MA) - Not yet captured</option>
+                        <option value="refresh_mental_fl_2022">Refresh Mental Health (FL) - Not yet captured</option>
+                        <option value="lhc_group_la_2022">LHC Group (LA) - Not yet captured</option>
+                        <option value="crystal_run_ny_2023">Crystal Run Healthcare (NY) - Not yet captured</option>
+                        <option value="care_counseling_mn_2024">CARE Counseling (MN) - Not yet captured</option>
+                        <option value="corvallis_clinic_or_2024">Corvallis Clinic (OR) - Not yet captured</option>
+                        <option value="all_captured">All Captured Acquisitions (11,925+ providers) ✅</option>
+                    </select>
+                </div>
+                <button id="fetch-provider-data-button" class="button-primary">Analyze Providers</button>
+            </section>
+
+            <section id="provider-analyzer-loading" class="loading-message" style="display: none;">
+                <p>Loading provider data...</p>
+            </section>
+
+            <section id="provider-analyzer-error" class="error-message" style="display: none;">
+                <p><!-- Error messages will be displayed here --></p>
+            </section>
+            
+            <section id="provider-analyzer-results" class="results-section" style="display: none;">
+                <h3 id="provider-results-title"></h3>
+                
+                <!-- Provider Risk Score Trend Chart -->
+                <div id="provider-dual-axis-chart-container" class="chart-container" style="height: 400px; margin-bottom: 60px; display: none;">
+                    <h4>Average Risk Score & Provider Count Over Time</h4>
+                    <canvas id="providerDualAxisChart"></canvas>
+                </div>
+
+                <!-- Provider Performance Table -->
+                <div id="provider-metrics-table-container" class="table-responsive mb-4">
+                    <!-- Table will be rendered here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', path='/js/provider_analyzer.js') }}"></script>
+</body>
+</html> 

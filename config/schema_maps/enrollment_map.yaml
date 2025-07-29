@@ -1,0 +1,89 @@
+# config/schema_maps/enrollment_map.yaml
+
+# Defines the canonical schema and year-specific raw column mappings for Enrollment data.
+
+canonical_schema:
+  # Target column names, their desired order, and intended data types
+  # ETL scripts will try to enforce these types.
+  columns:
+    - name: contract_number
+      dtype: string
+    - name: plan_id
+      dtype: string 
+    - name: ssa_code # Standardized from 'SSA State County Code'
+      dtype: string 
+    - name: fips_code # Standardized from 'FIPS State County Code'
+      dtype: string
+    - name: state
+      dtype: string
+    - name: county
+      dtype: string
+    - name: enrollment
+      dtype: Int64 # Pandas nullable integer type
+    - name: enrollment_original # To store the original enrollment string (e.g., '*')
+      dtype: string 
+    - name: parent_organization
+      dtype: string
+    - name: year
+      dtype: int32
+
+yearly_configs:
+  # Default mapping - applies if a year is not explicitly listed below
+  # Assumes column names are relatively consistent with typical CMS naming after initial cleaning.
+  # The ETL script will first try these, then apply general cleaning if a direct map isn't found.
+  default:
+    raw_columns_map:
+      "Contract Number": "contract_number"
+      "Plan ID": "plan_id"
+      "SSA State County Code": "ssa_code"
+      "FIPS State County Code": "fips_code"
+      "State": "state"
+      "County": "county"
+      "Enrollment": "enrollment"
+      "Parent Organization": "parent_organization"
+    # Optional: specific data type overrides for raw columns for this year if needed before canonical conversion
+    # raw_dtype_overrides:
+    #   "Plan ID": "str" # e.g. ensure Plan ID is read as string before processing
+
+  2023:
+    raw_columns_map:
+      "Contract Number": "contract_number"
+      "Plan ID": "plan_id"
+      "SSA State County Code": "ssa_code"
+      "FIPS State County Code": "fips_code"
+      "State": "state"
+      "County": "county"
+      "Enrollment": "enrollment"
+      "Parent Organization": "parent_organization"
+
+  2022:
+    raw_columns_map:
+      "Contract Number": "contract_number"
+      "Plan ID": "plan_id"
+      "SSA State County Code": "ssa_code"
+      "FIPS State County Code": "fips_code"
+      "State": "state"
+      "County": "county"
+      "Enrollment": "enrollment"
+      "Parent Organization": "parent_organization"
+
+  # Hypothetical example for an older year with different column names
+  2015:
+    raw_columns_map:
+      "Contract Num.": "contract_number"
+      "Plan Identifier": "plan_id"
+      "SSA Code": "ssa_code"
+      "FIPS": "fips_code"
+      "State Name": "state"
+      "County Name": "county"
+      "Enrollees": "enrollment"
+      "Parent Org.": "parent_organization"
+    # raw_dtype_overrides:
+    #   "Plan Identifier": "str"
+
+  # Add other years here if their raw column names deviate significantly from the 'default'
+  # or from the already listed years (2023, 2022, 2015).
+  # If a year is not listed, the 'default' mapping will be attempted by the ETL script.
+  # The ETL script's general `clean_column_names` function will still run as a first pass
+  # on the raw column names before attempting to use this map, so minor variations
+  # (like extra spaces or case differences) might be caught by that if not perfectly matched here. 

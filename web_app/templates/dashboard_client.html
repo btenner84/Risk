@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicare Risk Analysis - Client Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Tron-inspired blue/white theme */
+        :root {
+            --primary-blue: #00D4FF;
+            --dark-blue: #001B2E;
+            --light-blue: #7EC8E3;
+            --accent-white: #FFFFFF;
+            --background-dark: #0A1929;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background-dark) 0%, var(--dark-blue) 100%);
+            color: var(--accent-white);
+            font-family: 'Orbitron', 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 2px solid var(--primary-blue);
+            padding: 1rem 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+            color: var(--light-blue);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .analyzer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .analyzer-card {
+            background: rgba(0, 212, 255, 0.05);
+            border: 2px solid var(--primary-blue);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .analyzer-card:hover {
+            background: rgba(0, 212, 255, 0.15);
+            box-shadow: 0 0 30px var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .analyzer-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+            text-shadow: 0 0 15px var(--primary-blue);
+        }
+
+        .analyzer-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--accent-white);
+        }
+
+        .analyzer-description {
+            color: var(--light-blue);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .analyzer-button {
+            background: linear-gradient(45deg, var(--primary-blue), var(--light-blue));
+            border: none;
+            color: var(--dark-blue);
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyzer-button:hover {
+            box-shadow: 0 0 20px var(--primary-blue);
+            transform: scale(1.05);
+        }
+
+        .stats-bar {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary-blue);
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            margin: 2rem 0;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            text-shadow: 0 0 10px var(--primary-blue);
+        }
+
+        .stat-label {
+            color: var(--light-blue);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .analyzer-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Medicare Risk Analysis</h1>
+        <p>Client Portal - Advanced Fraud Detection & Risk Assessment</p>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value">7,215+</div>
+                <div class="stat-label">Medicare Contracts</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">2015-2023</div>
+                <div class="stat-label">Years of Data</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">50+ States</div>
+                <div class="stat-label">Geographic Coverage</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">Real-Time</div>
+                <div class="stat-label">Analysis Engine</div>
+            </div>
+        </div>
+
+        <div class="analyzer-grid">
+            <!-- Contract Analyzer -->
+            <div class="analyzer-card" onclick="window.location.href='/contract-analyzer'">
+                <div class="analyzer-icon">📊</div>
+                <div class="analyzer-title">Contract Analyzer</div>
+                <div class="analyzer-description">
+                    Comprehensive analysis of Medicare Advantage contracts. Examine risk scores, 
+                    acceleration patterns, and fraud indicators across plans and years.
+                </div>
+                <button class="analyzer-button">Analyze Contracts</button>
+            </div>
+
+            <!-- Parent Organization Analyzer -->
+            <div class="analyzer-card" onclick="window.location.href='/parent-analyzer'">
+                <div class="analyzer-icon">🏢</div>
+                <div class="analyzer-title">Parent Organization</div>
+                <div class="analyzer-description">
+                    Deep dive into parent organization performance. Track corporate entity 
+                    risk patterns and identify systematic fraud across subsidiaries.
+                </div>
+                <button class="analyzer-button">Analyze Organizations</button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; color: var(--light-blue);">
+            <p>Powered by industry-leading Medicare Advantage fraud detection algorithms</p>
+            <p>Detecting systematic risk acceleration patterns across 7,215+ contracts</p>
+        </div>
+    </div>
+
+    <script>
+        // Add subtle animations and interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats on load
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach(stat => {
+                stat.style.opacity = '0';
+                stat.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    stat.style.transition = 'all 0.6s ease';
+                    stat.style.opacity = '1';
+                    stat.style.transform = 'translateY(0)';
+                }, Math.random() * 500);
+            });
+
+            // Add glow effect to cards
+            const cards = document.querySelectorAll('.analyzer-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 0 40px rgba(0, 212, 255, 0.3)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

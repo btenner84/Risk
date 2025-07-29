@@ -1,0 +1,126 @@
+canonical_schema:
+  contract_id: str # Will be NA if not in raw county data, linked later
+  plan_id: str     # Will be NA if not in raw county data, linked later
+  organization_type: str
+  plan_type: str
+  ssa_state_county_code: str
+  fips_state_county_code: str
+  state: str
+  county: str
+  risk_score: float
+  avg_ab_payment: float # Added based on observed county file columns
+  avg_rebate: float     # Added based on observed county file columns
+  # The following columns might be counts or percentages depending on the source file.
+  # Assuming counts for now, and they might need adjustment after inspecting specific files.
+  # Users should verify and adjust data types as necessary.
+  average_age: float # Or int, depending on source
+  esrd_count: int
+  disabled_count: int
+  aged_dual_count: int
+  aged_nondual_count: int
+  institutional_count: int
+  year: int # Added during ETL
+
+yearly_configs:
+  default: # Default mapping for county-level files
+    raw_columns_map:
+      # Cleaned common raw names mapped to canonical names
+      'County Code': 'fips_state_county_code' # Or ssa_state_county_code depending on source
+      'CNTY_CD': 'fips_state_county_code'
+      'State Abbreviation': 'state'
+      'STATE': 'state'
+      'County Name': 'county'
+      'COUNTY': 'county'
+      'Plan Type': 'plan_type'
+      'SNP Plan Type': 'plan_type' # Coalesce with 'Plan Type' if both exist
+      'ORGANIZATION TYPE': 'organization_type'
+      'Organization Type': 'organization_type'
+      'Average Part C Risk Score': 'risk_score' # Was 'Average Part\nC Risk Score'
+      'AVERAGE PART C RISK SCORE': 'risk_score'
+      'Avg Risk Score': 'risk_score'
+      'Average AB PM/PM Payment': 'avg_ab_payment' # Was 'Average AB PM/PM\nPayment'
+      'AVERAGE A/B PM/PM PAYMENT': 'avg_ab_payment'
+      'Average Rebate PM/PM Payment': 'avg_rebate' # Was 'Average Rebate PM/PM\nPayment'
+      'AVERAGE REBATE PM/PM PAYMENT': 'avg_rebate'
+      'Average Age': 'average_age'
+      'AVERAGE AGE': 'average_age'
+      'ESRD': 'esrd_count'
+      'DISABLED': 'disabled_count'
+      'Disabled': 'disabled_count'
+      'AGED/DUAL': 'aged_dual_count' # Slash might be removed by cleaning
+      'Aged/Dual': 'aged_dual_count'
+      'AGED DUAL': 'aged_dual_count'
+      'Aged Dual': 'aged_dual_count'
+      'AGED/NONDUAL': 'aged_nondual_count'
+      'Aged/NonDual': 'aged_nondual_count'
+      'AGED NOND': 'aged_nondual_count'
+      'AGED NONDEM': 'aged_nondual_count'
+      'AGED NONDUAL': 'aged_nondual_count'
+      'Aged NonDual': 'aged_nondual_count'
+      'INSTITUTIONAL': 'institutional_count'
+      'Institutional': 'institutional_count'
+    header_row_index: 0 # Default, can be overridden
+
+  2015:
+    raw_columns_map:
+      'County Code': 'fips_state_county_code'
+      'State Abbreviation': 'state'
+      'County Name': 'county'
+      'Plan Type': 'plan_type'
+      'SNP Plan Type': 'plan_type' # Coalesce logic needed if both present and mapped to same
+      'Average Part C Risk Score': 'risk_score' # Was 'Average Part\nC Risk Score'
+      'Average AB PM/PM Payment': 'avg_ab_payment' # Was 'Average AB PM/PM\nPayment'
+      'Average Rebate PM/PM Payment': 'avg_rebate' # Was 'Average Rebate PM/PM\nPayment'
+    header_row_index: 0
+
+  2016:
+    raw_columns_map:
+      'County Code': 'fips_state_county_code'
+      'State Abbreviation': 'state'
+      'County Name': 'county'
+      'Plan Type': 'plan_type'
+      'SNP Plan Type': 'plan_type'
+      'Average Part C Risk Score': 'risk_score' # Was 'Average Part\nC Risk Score'
+      'Average AB PM/PM Payment': 'avg_ab_payment' # Was 'Average AB PM/PM\nPayment'
+      'Average Rebate PM/PM Payment': 'avg_rebate' # Was 'Average Rebate PM/PM\nPayment'
+    header_row_index: 0
+
+  2017:
+    raw_columns_map:
+      'County Code': 'fips_state_county_code'
+      'State Abbreviation': 'state'
+      'County Name': 'county'
+      'Plan Type': 'plan_type'
+      'SNP Plan Type': 'plan_type'
+      'Average Part C Risk Score': 'risk_score' # From log: 'Average Part C Risk Score' (no newline)
+      'Average A/B PM/PM Payment': 'avg_ab_payment' # From log: 'Average A/B PM/PM Payment'
+      'Average Rebate PM/PM Payment': 'avg_rebate' # From log: 'Average Rebate PM/PM Payment'
+    header_row_index: 0
+
+  2018:
+    raw_columns_map:
+      'County Code': 'fips_state_county_code'
+      'State Abbreviation': 'state'
+      'County Name': 'county'
+      'Plan Type': 'plan_type'
+      'SNP Plan Type': 'plan_type'
+      'Average Part C Risk Score': 'risk_score' # Was 'Average Part\nC Risk Score'
+      'Average AB PM/PM Payment': 'avg_ab_payment' # From log: 'Average AB PM/PM Payment'
+      'Average Rebate PM/PM Payment': 'avg_rebate' # Was 'Average Rebate PM/PM\nPayment'
+    header_row_index: 0
+
+  # Years 2019-2023 will use the 'default' mapping.
+  # If they fail, specific entries will be needed based on new error logs.
+
+  # 2023: # Example for a specific year if overrides are needed
+  #   raw_columns_map:
+  #     'CNO': 'contract_id' # If 2023 uses 'CNO' instead of 'Contract Number'
+  #     'PlanIdentifier': 'plan_id'
+  #     # ... other specific mappings for 2023
+  #   sheet_name: 'CountyData2023'
+  #   header_row_index: 0
+
+  # 2022:
+  #   # ... specific mappings for 2022
+
+  # Add other years as needed, inheriting from default or overriding fully 

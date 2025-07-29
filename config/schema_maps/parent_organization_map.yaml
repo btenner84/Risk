@@ -1,0 +1,43 @@
+# config/schema_maps/parent_organization_map.yaml
+
+canonical_schema:
+  contract_id: str
+  plan_id: str
+  organization_type: str
+  plan_type: str
+  offers_part_d: str # Yes/No, so keep as string
+  raw_organization_name: str
+  organization_marketing_name: str
+  plan_name: str
+  parent_organization_name: str # Key new field
+  contract_effective_date: str # Keep as string for now, can parse to datetime later if needed
+  enrollment_parent_file: Int64 # CMS files often use '*' for low counts
+  year: int
+  month: int
+
+yearly_configs:
+  default: # Default mapping for parent organization report files
+    raw_columns_map:
+      "Contract Number": "contract_id"
+      "Plan ID": "plan_id"
+      "Organization Type": "organization_type"
+      "Plan Type": "plan_type"
+      "Offers Part D": "offers_part_d"
+      "Organization Name": "raw_organization_name"
+      "Organization Marketing Name": "organization_marketing_name"
+      "Plan Name": "plan_name"
+      "Parent Organization": "parent_organization_name"
+      "Contract Effective Date": "contract_effective_date"
+      "Enrollment": "enrollment_parent_file"
+    # Add year-specific overrides if column names change significantly in other years' files
+    # Example:
+    # 2015:
+    #   raw_columns_map:
+    #     "Contract No.": "contract_id" # If 2015 used a different name
+    #     # ... other 2015 specific mappings
+
+# Note: The ETL script (etl_parent_data.py) will derive 'year' and 'month'
+# from the filename, so they are not mapped from raw columns here,
+# but are part of the final canonical schema.
+# The ETL script will also handle converting 'Enrollment' to numeric,
+# potentially storing an original string version if needed (similar to enrollment_map.yaml). 

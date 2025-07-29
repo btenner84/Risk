@@ -1,0 +1,73 @@
+# config/schema_maps/plan_level_risk_map.yaml
+
+canonical_schema:
+  contract_id: str
+  plan_id: str
+  organization_name: str
+  plan_name: str
+  organization_type: str # Often derived or part of plan_type string
+  plan_type: str
+  state: str
+  risk_score: float
+  avg_ab_payment: float
+  avg_rebate: float
+  enrollment: Int64
+  year: int # Added during ETL
+
+yearly_configs:
+  default:
+    raw_columns_map:
+      # These are raw names as they appear in the Excel files AFTER initial cleaning (newlines to spaces, etc.)
+      'Contract Number': 'contract_id'
+      'Plan Benefit Package': 'plan_id'
+      'Contract Name': 'organization_name'
+      'Plan Name': 'plan_name' 
+      'Plan Type': 'plan_type'
+      'Average Part C Risk Score': 'risk_score'
+      'Average A/B PM/PM Payment': 'avg_ab_payment' 
+      'Average Rebate PM/PM Payment': 'avg_rebate'
+      'Enrollment': 'enrollment'
+
+      # Older/Alternative Raw Names (examples, verify from actual old files if issues persist)
+      'CONTRACT_ID': 'contract_id'
+      'CONTRACTID': 'contract_id'
+      'PLAN_ID': 'plan_id'
+      'PLANID': 'plan_id'
+      'ORG_NAME': 'organization_name'
+      'ORGANIZATION_NAME': 'organization_name'
+      'PLANNAME': 'plan_name'
+      'PLAN_TYPE': 'plan_type'
+      'RISK_SCORE': 'risk_score'
+      'AVG_RISK_SCORE': 'risk_score'
+      'TOTAL_ENROLLMENT': 'enrollment'
+      'STATE_ABBREVIATION': 'state'
+      'State': 'state'
+    # sheet_name: null 
+    # header_row_index: 0 # Default for older files if not specified by year
+
+  2019:
+    header_row_index: 0
+  2020:
+    header_row_index: 0
+  2021:
+    header_row_index: 0
+  2022:
+    header_row_index: 0
+  2023:
+    header_row_index: 0
+
+  # Example for a specific year if it differs significantly:
+  # 2019:
+  #   raw_columns_map:
+  #     'CNO': 'contract_id'
+  #     'PID': 'plan_id'
+  #     'OrgName': 'organization_name'
+  #     # ... other specific mappings for 2019
+  #   sheet_name: 'MA_Plan_Data_2019'
+  #   header_row_index: 1
+
+  # 2015, 2016, 2017, 2018 specific (if needed, but default should cover them now)
+  # Example for 2015 if it still has very unique names not covered by default logic
+  # "2015":
+  #   raw_columns_map:
+  #     'Unique Column Name Only In 2015': 'canonical_name' 

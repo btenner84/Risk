@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <!-- Chart.js if charts are planned for this page -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer" class="active">State Analyzer</a></li>
+                <li><a href="/unh-analyzer">UNH Acquisition Analyzer</a></li>
+                <li><a href="/performance-heatmap">Performance Heat Map</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <header class="page-header">
+                <h1>State Analyzer</h1>
+                <p>Analyze Medicare Advantage market metrics and parent organization performance by state.</p>
+            </header>
+            
+            <section id="state-analyzer-controls" class="controls-section">
+                <div class="filter-group">
+                    <label for="state-name-input">Select State:</label>
+                    <input type="text" id="state-name-input" placeholder="Enter state name (e.g., California, CA)...">
+                    <div class="suggestions-container" id="state-name-suggestions" style="display: none;"></div>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="plan-type-filter-select">Plan Type Filter:</label>
+                    <select id="plan-type-filter-select">
+                        <option value="all" selected>All Plan Types</option>
+                        <option value="traditional">Traditional (Non-SNP)</option>
+                        <option value="dual_eligible">Dual Eligible SNP</option>
+                        <option value="chronic">Chronic Condition SNP</option>
+                        <option value="institutional">Institutional SNP</option>
+                    </select>
+                </div>
+                
+                <button id="fetch-state-data-button" class="button-primary">Analyze State</button>
+            </section>
+
+            <section id="state-analyzer-loading" class="loading-message" style="display: none;">
+                <p>Loading state analysis data...</p>
+            </section>
+
+            <section id="state-analyzer-error" class="error-message" style="display: none;">
+                <p><!-- Error messages will be displayed here --></p>
+            </section>
+            
+            <section id="state-analyzer-results" class="results-section" style="display: none;">
+                <h3 id="state-results-title"></h3>
+                
+                <!-- State Metrics Overview Table -->
+                <div class="data-section">
+                    <h4>State Market Metrics Over Time</h4>
+                    <div id="state-metrics-table-container" class="table-container">
+                        <!-- Metrics table will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Dual-Axis Chart -->
+                <div class="data-section">
+                    <h4>State Trends: Enrollment & Risk Scores</h4>
+                    <div id="state-dual-axis-chart-container" style="height: 400px; display: none;">
+                        <canvas id="stateDualAxisChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Market Share Visualization -->
+                <div class="data-section">
+                    <h4 id="state-market-share-title">Parent Organization Market Share</h4>
+                    <div id="state-market-share-chart-container" style="height: 400px; display: none;">
+                        <canvas id="stateMarketShareChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Parent Organization Enrollment Table -->
+                <div class="data-section">
+                    <h4>Parent Organization Enrollment Over Time</h4>
+                    <div id="state-parent-org-enrollment-table-container" class="table-container">
+                        <!-- Parent org enrollment table will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Parent Organization Risk Score Performance Table -->
+                <div class="data-section">
+                    <h4>Parent Organization Risk Score Performance</h4>
+                    <div id="state-parent-org-risk-score-table-container" class="table-container">
+                        <!-- Parent org risk score table will be rendered here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', path='/js/state_analyzer.js') }}"></script>
+</body>
+</html> 

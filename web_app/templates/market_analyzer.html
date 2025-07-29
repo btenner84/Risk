@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Contracts</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js if charts are planned -->
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer" class="active">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer">State Analyzer</a></li>
+                <li><a href="/performance-heatmap">Performance Heat Map</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <header class="page-header">
+                <h1>All Contracts</h1>
+            </header>
+            
+            <section id="market-analyzer-controls" class="controls-section">
+                <div class="control-group">
+                    <label for="market-year-select">Select Year:</label>
+                    <select id="market-year-select">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <button id="fetch-market-data-button" class="button-primary">Fetch Market Data</button>
+                <button id="output-market-data-excel" class="button-secondary" style="margin-left: 10px; display: none;">Output to Excel</button>
+            </section>
+
+            <section id="market-analyzer-loading" class="loading-message" style="display: none;">
+                <p>Loading market data...</p>
+            </section>
+
+            <section id="market-analyzer-error" class="error-message" style="display: none;">
+                <p><!-- Error messages will be displayed here --></p>
+            </section>
+            
+            <section id="market-analyzer-results" class="results-section">
+                <h3 id="market-table-title">Market Data for Year YYYY</h3>
+                <div id="market-table-container">
+                    <!-- Table will be rendered here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/js/main.js"></script> <!-- For sidebar toggle -->
+    <script src="/static/js/market_analyzer.js"></script>
+</body>
+</html> 

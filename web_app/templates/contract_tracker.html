@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Tracker - Risk Score Master</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="header">
+            <h1>Contract Tracker</h1>
+            <p>Track any 2023 contract's lineage over time</p>
+        </header>
+
+        <nav class="navigation">
+            <a href="/" class="nav-link">← Back to Dashboard</a>
+        </nav>
+
+        <div class="content-section">
+            <div class="search-section">
+                <h3>Enter 2023 Contract ID</h3>
+                <div class="search-container">
+                    <input type="text" id="contractInput" placeholder="e.g., H0034_002" class="search-input">
+                    <button id="trackButton" class="btn btn-primary">Track Contract</button>
+                </div>
+            </div>
+
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading contract lineage...</p>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h3 id="contractTitle">Contract Lineage</h3>
+                    <div id="contractSummary" class="summary-stats"></div>
+                </div>
+
+                <div class="table-container">
+                    <table id="lineageTable" class="lineage-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Contract ID</th>
+                                <th>Parent Organization</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineageTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="errorSection" class="error-section" style="display: none;">
+                <div class="error-message">
+                    <h3>Contract Not Found</h3>
+                    <p id="errorMessage">Please check the contract ID and try again.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/contract_tracker.js"></script>
+</body>
+</html> 

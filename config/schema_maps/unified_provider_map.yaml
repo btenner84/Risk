@@ -1,0 +1,189 @@
+# config/schema_maps/unified_provider_map.yaml
+
+# This map combines Medicare Physician data with DAC Provider data via NPI
+# Goal: Create unified provider database with physician details + facility affiliations
+
+# PRIMARY SOURCE: Medicare Physician Data (Doc-RiskScore)
+medicare_physician_schema:
+  npi: str                              # Primary key for linking
+  physician_last_name: str              # Provider last name
+  physician_first_name: str             # Provider first name  
+  physician_middle_initial: str         # Middle initial
+  credentials: str                      # Provider credentials
+  provider_type: str                    # Provider type/specialty
+  state: str                           # State abbreviation
+  zip_code: str                        # ZIP code (for county derivation)
+  county_name: str                     # Derived from ZIP lookup
+  fips_code: str                       # FIPS code for county
+  total_beneficiaries: Int64           # Number of Medicare beneficiaries
+  average_risk_score: float            # Provider risk score
+  # year: int # Added during processing
+
+# SECONDARY SOURCE: DAC Provider Data (doc-providor)  
+dac_provider_schema:
+  npi: str                             # Linking key
+  facility_name: str                   # Organization/facility name
+  organization_pac_id: str             # Organization PAC ID
+  num_org_members: Int64               # Number of organization members (ACQUISITION INDICATOR!)
+  primary_specialty: str               # Primary specialty
+  secondary_specialties: str           # Secondary specialties (combined)
+  telehealth_enabled: str              # Telehealth indicator
+  facility_address_line1: str          # Facility address line 1
+  facility_address_line2: str          # Facility address line 2 (ACQUISITION INDICATOR!)
+  facility_city: str                   # Facility city
+  facility_state: str                  # Facility state
+  facility_zip: str                    # Facility ZIP
+  facility_phone: str                  # Facility phone (ACQUISITION INDICATOR!)
+  individual_pac_id: str               # Individual PAC ID (stable identifier)
+  individual_enrollment_id: str        # Individual enrollment ID (stable identifier)
+  group_assignment: str                # Group assignment status (ACQUISITION INDICATOR!)
+  individual_assignment: str           # Individual assignment status
+  address_id: str                      # Address identifier (ACQUISITION INDICATOR!)
+
+# COMBINED OUTPUT SCHEMA
+unified_provider_schema:
+  npi: str                             # Primary key
+  physician_last_name: str
+  physician_first_name: str
+  physician_full_name: str             # Computed: "Last, First MI"
+  credentials: str
+  provider_type: str                   # From Medicare data
+  primary_specialty: str               # From DAC data
+  secondary_specialties: str           # From DAC data
+  practice_state: str                  # Provider practice state
+  practice_county: str                 # Provider practice county
+  practice_zip: str                    # Provider practice ZIP
+  fips_code: str                       # County FIPS code
+  facility_name: str                   # Primary facility affiliation
+  organization_pac_id: str             # Organization PAC ID (KEY ACQUISITION INDICATOR!)
+  num_org_members: Int64               # Organization size (KEY ACQUISITION INDICATOR!)
+  facility_address_line1: str          # Facility address
+  facility_address_line2: str          # Additional address info
+  facility_city: str
+  facility_state: str
+  facility_zip: str
+  facility_phone: str                  # Corporate phone (ACQUISITION INDICATOR!)
+  individual_pac_id: str               # Stable individual identifier
+  individual_enrollment_id: str        # Stable individual identifier
+  group_assignment: str                # Group assignment (ACQUISITION INDICATOR!)
+  individual_assignment: str           # Individual assignment
+  address_id: str                      # Address identifier (ACQUISITION INDICATOR!)
+  total_medicare_beneficiaries: Int64  # From Medicare data
+  average_risk_score: float            # From Medicare data
+  telehealth_enabled: str              # From DAC data
+  year: int
+
+# COLUMN MAPPINGS
+medicare_physician_columns:
+  'Rndrng_NPI': 'npi'
+  'Rndrng_Prvdr_Last_Org_Name': 'physician_last_name'
+  'Rndrng_Prvdr_First_Name': 'physician_first_name'
+  'Rndrng_Prvdr_MI': 'physician_middle_initial'
+  'Rndrng_Prvdr_Crdntls': 'credentials'
+  'Rndrng_Prvdr_Type': 'provider_type'
+  'Rndrng_Prvdr_State_Abrvtn': 'state'
+  'Rndrng_Prvdr_Zip5': 'zip_code'
+  'Tot_Benes': 'total_beneficiaries'
+  'Bene_Avg_Risk_Scre': 'average_risk_score'
+
+# Year-specific DAC Provider column mappings (columns changed over time!)
+dac_provider_columns_by_year:
+  default: # 2018-2022 format (with leading spaces in column names)
+    'NPI': 'npi'
+    ' org_nm': 'facility_name'                       # Note: leading space in older files
+    ' org_pac_id': 'organization_pac_id'             # Note: leading space
+    ' num_org_mem': 'num_org_members'
+    ' pri_spec': 'primary_specialty'
+    ' sec_spec_all': 'secondary_specialties'
+    ' adr_ln_1': 'facility_address_line1'
+    ' adr_ln_2': 'facility_address_line2'
+    ' cty': 'facility_city'
+    ' st': 'facility_state'
+    ' zip': 'facility_zip'
+    ' phn_numbr': 'facility_phone'
+    ' Ind_PAC_ID': 'individual_pac_id'
+    ' Ind_enrl_ID': 'individual_enrollment_id'
+    ' grp_assgn': 'group_assignment'
+    ' ind_assgn': 'individual_assignment'
+    ' adrs_id': 'address_id'
+  
+  "2022": # 2022 format (no leading spaces)
+    'NPI': 'npi'
+    'org_nm': 'facility_name'
+    'org_pac_id': 'organization_pac_id'
+    'num_org_mem': 'num_org_members'
+    'pri_spec': 'primary_specialty'
+    'sec_spec_all': 'secondary_specialties'
+    'adr_ln_1': 'facility_address_line1'
+    'adr_ln_2': 'facility_address_line2'
+    'cty': 'facility_city'
+    'st': 'facility_state'
+    'zip': 'facility_zip'
+    'phn_numbr': 'facility_phone'
+    'Ind_PAC_ID': 'individual_pac_id'
+    'Ind_enrl_ID': 'individual_enrollment_id'
+    'grp_assgn': 'group_assignment'
+    'ind_assgn': 'individual_assignment'
+    'adrs_id': 'address_id'
+    
+  "2023": # 2023 format (descriptive column names)
+    'NPI': 'npi'
+    'Facility Name': 'facility_name'
+    'org_pac_id': 'organization_pac_id'
+    'num_org_mem': 'num_org_members'
+    'pri_spec': 'primary_specialty'
+    'sec_spec_all': 'secondary_specialties'
+    'Telehlth': 'telehealth_enabled'
+    'adr_ln_1': 'facility_address_line1'
+    'adr_ln_2': 'facility_address_line2'
+    'City/Town': 'facility_city'
+    'State': 'facility_state'
+    'ZIP Code': 'facility_zip'
+    'Telephone Number': 'facility_phone'
+    'Ind_PAC_ID': 'individual_pac_id'
+    'Ind_enrl_ID': 'individual_enrollment_id'
+    'grp_assgn': 'group_assignment'
+    'ind_assgn': 'individual_assignment'
+    'adrs_id': 'address_id'
+
+# Legacy column mapping for backwards compatibility
+dac_provider_columns:
+  'NPI': 'npi'
+  'Facility Name': 'facility_name'
+  'org_pac_id': 'organization_pac_id'
+  'num_org_mem': 'num_org_members'
+  'pri_spec': 'primary_specialty'
+  'sec_spec_all': 'secondary_specialties'  
+  'Telehlth': 'telehealth_enabled'
+  'adr_ln_1': 'facility_address_line1'
+  'adr_ln_2': 'facility_address_line2'
+  'City/Town': 'facility_city'
+  'State': 'facility_state'
+  'ZIP Code': 'facility_zip'
+  'Telephone Number': 'facility_phone'
+  'Ind_PAC_ID': 'individual_pac_id'
+  'Ind_enrl_ID': 'individual_enrollment_id'
+  'grp_assgn': 'group_assignment'
+  'ind_assgn': 'individual_assignment'
+  'adrs_id': 'address_id'
+
+# PROCESSING CONFIGURATION
+processing_config:
+  chunk_size: 25000                    # Smaller chunks for memory management
+  join_method: 'left'                  # Keep all Medicare providers, add DAC data where available
+  primary_source: 'medicare_physician' # Medicare data is primary
+  deduplicate_on: ['npi', 'year']     # Handle duplicate NPIs per year
+  
+# DATA QUALITY FILTERS
+quality_filters:
+  medicare_physician:
+    - 'npi.notna()'                   # Require valid NPI
+    - 'total_beneficiaries >= 11'     # Remove suppressed data
+    - 'state.notna()'                 # Require valid state
+  
+  dac_provider:
+    - 'npi.notna()'                   # Require valid NPI
+    
+  combined:
+    - 'physician_last_name.notna()'   # Require physician name
+    - 'practice_state.notna()'        # Require practice location 

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specific Contract Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', path='/js/contract_analyzer.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer" class="active">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer">State Analyzer</a></li>
+                <li><a href="/performance-heatmap">Performance Heat Map</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <main class="main-content">
+            <div class="parent-analyzer-input-area"> <!-- Will rename this class later if needed for specific styling -->
+                <h2>Specific Contract Analyzer</h2>
+                
+                <div class="filter-group">
+                    <label for="contract-id-search">Input Contract ID for Details:</label>
+                    <input type="text" id="contract-id-search" placeholder="Enter Contract ID (e.g., H1234)...">
+                    <div class="suggestions-container" id="contract-id-suggestions"></div> <!-- Will need JS to populate this if we want suggestions -->
+                </div>
+
+                <div class="filter-group" id="plan-id-filter-group" style="display: none;">
+                    <label for="plan-id-select">Select Plan ID:</label>
+                    <select id="plan-id-select"></select>
+                </div>
+
+                <button id="analyze-contract-button">Fetch Plans / Analyze</button> 
+            </div>
+
+            <div id="contract-analyzer-results-wrapper">
+                <div id="contract-analyzer-results">
+                    <div id="contract-plan-risk-chart-container"></div>
+                    <p>Contract details will appear here.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html> 

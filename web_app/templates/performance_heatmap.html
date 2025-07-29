@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Heat Map</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer">State Analyzer</a></li>
+                <li><a href="/performance-heatmap" class="active">Performance Heat Map</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Parent Organization Performance Heat Map</h1>
+                <p>Visualize geographic performance patterns for Medicare Advantage organizations</p>
+            </header>
+            
+            <section id="heatmap-controls" class="controls-section">
+                <div class="control-group">
+                    <label for="parent-org-select">Select Parent Organization:</label>
+                    <select id="parent-org-select">
+                        <option value="">Loading organizations...</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="year-select">Select Year:</label>
+                    <select id="year-select">
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="metric-select">Performance Metric:</label>
+                    <select id="metric-select">
+                        <option value="risk_delta">Risk Score Delta vs County Benchmark</option>
+                        <option value="market_share">Market Share %</option>
+                        <option value="enrollment_growth">YoY Enrollment Growth %</option>
+                        <option value="total_enrollment">Total Enrollment</option>
+                    </select>
+                </div>
+                
+                <!-- Performance Optimization Controls -->
+                <div class="control-group">
+                    <label for="county-limit-select">Max Counties to Display:</label>
+                    <select id="county-limit-select">
+                        <option value="50">Top 50 Counties</option>
+                        <option value="100" selected>Top 100 Counties</option>
+                        <option value="200">Top 200 Counties</option>
+                        <option value="500">Top 500 Counties</option>
+                        <option value="all">All Counties (Slow)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="min-enrollment-input">Min Enrollment Threshold:</label>
+                    <input type="number" id="min-enrollment-input" value="100" min="0" step="50" placeholder="100">
+                    <small>Only show counties with at least this many enrollees</small>
+                </div>
+                
+                <div class="control-group">
+                    <label for="plan-type-filter-select">Plan Type Filter:</label>
+                    <select id="plan-type-filter-select">
+                        <option value="all" selected>All Plan Types</option>
+                        <option value="traditional">Traditional (Non-SNP)</option>
+                        <option value="dual_eligible">Dual Eligible SNP</option>
+                        <option value="chronic">Chronic Condition SNP</option>
+                        <option value="institutional">Institutional SNP</option>
+                    </select>
+                </div>
+                
+                <button id="generate-heatmap-button" class="button-primary">Generate Heat Map</button>
+                <button id="download-performance-data" class="button-secondary" style="margin-left: 10px; display: none;">Download Data</button>
+            </section>
+
+            <section id="heatmap-loading" class="loading-message" style="display: none;">
+                <p>Generating performance heat map...</p>
+            </section>
+
+            <section id="heatmap-error" class="error-message" style="display: none;">
+                <p><!-- Error messages will be displayed here --></p>
+            </section>
+            
+            <section id="heatmap-results" class="results-section" style="display: none;">
+                <div class="heatmap-header">
+                    <h3 id="heatmap-title">Performance Heat Map</h3>
+                    <div class="performance-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #d73027;"></div>
+                            <span>Significantly Underperforming</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #fc8d59;"></div>
+                            <span>Underperforming</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #fee08b;"></div>
+                            <span>At Benchmark</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #91bfdb;"></div>
+                            <span>Outperforming</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4575b4;"></div>
+                            <span>Significantly Outperforming</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- US Map Visualization -->
+                <div id="us-map-container" class="map-container">
+                    <svg id="us-map" width="960" height="600"></svg>
+                </div>
+                
+                <!-- Performance Summary Cards -->
+                <div id="performance-summary" class="performance-cards">
+                    <div class="performance-card">
+                        <h4>Top Performing Counties</h4>
+                        <div id="top-counties-list"><!-- Dynamic content --></div>
+                    </div>
+                    <div class="performance-card">
+                        <h4>Improvement Opportunities</h4>
+                        <div id="opportunity-counties-list"><!-- Dynamic content --></div>
+                    </div>
+                    <div class="performance-card">
+                        <h4>Market Gaps</h4>
+                        <div id="market-gaps-list"><!-- Dynamic content --></div>
+                    </div>
+                </div>
+                
+                <!-- Detailed Performance Table -->
+                <div id="performance-table-container" class="table-responsive">
+                    <h4>County-Level Performance Details</h4>
+                    <!-- Table will be rendered here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/js/performance_heatmap.js"></script>
+</body>
+</html> 

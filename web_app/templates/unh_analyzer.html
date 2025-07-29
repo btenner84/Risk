@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- D3.js for advanced visualizations -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Medicare Advantage Risk Score Analyzer</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home (Org Summary)</a></li>
+                <li><a href="/parent-analyzer">Parent Org. Analyzer</a></li>
+                <li><a href="/contract-analyzer">Specific Contract Analyzer</a></li>
+                <li><a href="/market-analyzer">All Contracts</a></li>
+                <li><a href="/county-analyzer">County Analyzer</a></li>
+                <li><a href="/state-analyzer">State Analyzer</a></li>
+                <li><a href="/unh-analyzer" class="active">UNH Acquisition Analyzer</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <header class="page-header">
+                <h1>UNH Acquisition Analysis</h1>
+                <p class="page-description">
+                    Comprehensive analysis of UnitedHealth Group's provider acquisition strategy and impact on Medicare Advantage risk scores
+                </p>
+            </header>
+
+            <!-- Loading and Error States -->
+            <section id="unh-loading" class="loading-message" style="display: none;">
+                <p>Loading UNH acquisition data...</p>
+            </section>
+
+            <section id="unh-error" class="error-message" style="display: none;">
+                <p><!-- Error messages will be displayed here --></p>
+            </section>
+
+            <!-- Dashboard Summary -->
+            <section id="unh-dashboard" class="dashboard-section">
+                <h2>Acquisition Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="major-acquisitions-captured-stat">-</h3>
+                        <p>Major Acquisitions Captured in System</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-providers-stat">-</h3>
+                        <p>Total UNH Providers Captured</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="years-covered-stat">-</h3>
+                        <p>Years Covered</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="largest-acquisition-stat">-</h3>
+                        <p>Largest Acquisition</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation Tabs -->
+            <section class="tab-navigation">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="timeline">Acquisition Timeline</button>
+                    <button class="tab-button" data-tab="geographic">Geographic Distribution</button>
+                    <button class="tab-button" data-tab="providers">Provider Search</button>
+                    <button class="tab-button" data-tab="risk-analysis">Risk Score Analysis</button>
+                    <button class="tab-button" data-tab="detailed-analysis">More Details</button>
+                    <button class="tab-button" data-tab="ground-truth">Ground Truth Validation</button>
+                    <button class="tab-button" data-tab="master-analysis">🎯 Master Analysis</button>
+                </div>
+            </section>
+
+            <!-- Timeline Tab -->
+            <section id="timeline-tab" class="tab-content active">
+                <h3>🎯 Provider Acquisition Risk Score Timeline</h3>
+                <p class="tab-description">
+                    Select a specific UNH acquisition to see risk score evolution over time with provider population
+                </p>
+                
+                <div class="acquisition-controls">
+                    <div class="control-group">
+                        <label for="main-acquisition-selector">Select Acquisition:</label>
+                        <select id="main-acquisition-selector" class="acquisition-dropdown">
+                            <option value="">Loading acquisitions...</option>
+                        </select>
+                    </div>
+                    <div class="acquisition-info" id="main-acquisition-info" style="display: none;">
+                        <span class="info-stat">
+                            <strong>Providers:</strong> <span id="main-selected-providers">-</span>
+                        </span>
+                        <span class="info-stat">
+                            <strong>Acquisition Year:</strong> <span id="main-selected-year">-</span>
+                        </span>
+                        <span class="info-stat">
+                            <strong>Years of Data:</strong> <span id="main-selected-years-span">-</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="acquisition-timeline-chart">
+                    <canvas id="mainTimelineChart" style="height: 350px;"></canvas>
+                </div>
+                
+                <div id="category-breakdown-chart" class="chart-container" style="height: 300px; margin-top: 30px;">
+                    <h4>Acquisition Categories</h4>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Geographic Tab -->
+            <section id="geographic-tab" class="tab-content" style="display: none;">
+                <h3>Geographic Distribution</h3>
+                <div class="controls-section">
+                    <div class="filter-group">
+                        <label for="state-filter">Filter by State:</label>
+                        <select id="state-filter">
+                            <option value="">All States</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="category-filter">Filter by Category:</label>
+                        <select id="category-filter">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="geographic-chart" class="chart-container" style="height: 500px;">
+                    <canvas id="geoChart"></canvas>
+                </div>
+                
+                <div id="geographic-table" class="table-responsive mt-4">
+                    <!-- Geographic distribution table will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Provider Search Tab -->
+            <section id="providers-tab" class="tab-content" style="display: none;">
+                <h3>Provider Search & Analysis</h3>
+                
+                <div class="controls-section">
+                    <div class="filter-group">
+                        <label for="provider-category-filter">Acquisition Category:</label>
+                        <select id="provider-category-filter">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="provider-state-filter">State:</label>
+                        <select id="provider-state-filter">
+                            <option value="">All States</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="acquisition-year-start">Acquisition Year Start:</label>
+                        <input type="number" id="acquisition-year-start" min="2012" max="2023" placeholder="2012">
+                    </div>
+                    <div class="filter-group">
+                        <label for="acquisition-year-end">Acquisition Year End:</label>
+                        <input type="number" id="acquisition-year-end" min="2012" max="2023" placeholder="2023">
+                    </div>
+                    <button id="search-providers-button" class="button-primary">Search Providers</button>
+                </div>
+
+                <div id="provider-search-results" class="results-section" style="display: none;">
+                    <div id="provider-summary" class="summary-stats">
+                        <!-- Provider search summary will be displayed here -->
+                    </div>
+                    
+                    <div id="provider-table" class="table-responsive">
+                        <!-- Provider table will be rendered here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Risk Analysis Tab -->
+            <section id="risk-analysis-tab" class="tab-content" style="display: none;">
+                <h3>Risk Score Acceleration Analysis</h3>
+                <p class="tab-description">
+                    Statistical analysis of Medicare Advantage risk score changes before and after UNH acquisitions
+                </p>
+
+                <div id="risk-analysis-loading" class="loading-message" style="display: none;">
+                    <p>Loading risk acceleration analysis...</p>
+                </div>
+
+                <div id="risk-analysis-results" class="results-section">
+                    <div id="statistical-tests" class="analysis-section">
+                        <h4>Statistical Test Results</h4>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3 id="t-test-stat">-</h3>
+                                <p>T-Test P-Value</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 id="effect-size-stat">-</h3>
+                                <p>Cohen's d Effect Size</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 id="mean-before-stat">-</h3>
+                                <p>Mean Risk Score (Before)</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 id="mean-after-stat">-</h3>
+                                <p>Mean Risk Score (After)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="temporal-analysis-chart" class="chart-container" style="height: 400px; margin-top: 30px;">
+                        <h4>Risk Score Changes Over Time</h4>
+                        <canvas id="temporalChart"></canvas>
+                    </div>
+
+                    <div id="category-analysis-table" class="table-responsive mt-4">
+                        <h4>Analysis by Acquisition Category</h4>
+                        <!-- Category analysis table will be rendered here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Analysis Tab -->
+            <section id="detailed-analysis-tab" class="tab-content" style="display: none;">
+                <h3>Comprehensive Risk Acceleration Analysis</h3>
+                <p class="tab-description">
+                    Deep dive into risk score patterns showing before/after acquisition impacts across 10,000+ UNH providers
+                </p>
+
+                <div id="detailed-analysis-loading" class="loading-message" style="display: none;">
+                    <p>Loading comprehensive analysis...</p>
+                </div>
+
+                <!-- Executive Summary Cards -->
+                <div class="analysis-summary-section">
+                    <h4>Executive Summary</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="total-analyzed-providers">-</h3>
+                            <p>Providers Analyzed</p>
+                            <small>Across all UNH acquisitions</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="overall-risk-change">-</h3>
+                            <p>Overall Risk Score Change</p>
+                            <small id="risk-change-significance">-</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="acceleration-providers">-</h3>
+                            <p>Providers with Acceleration Data</p>
+                            <small>Complete before/after timeline</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="acquisition-categories">-</h3>
+                            <p>Acquisition Categories</p>
+                            <small>Analyzed with sufficient data</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider Acquisition Timeline - KEY FEATURE -->
+                <div class="acquisition-timeline-section">
+                    <h4>🎯 1. Provider Acquisition Risk Score Timeline</h4>
+                    <p class="section-description">
+                        Select a specific UNH acquisition to see risk score evolution over time with provider population
+                    </p>
+                    
+                    <div class="acquisition-controls">
+                        <div class="control-group">
+                            <label for="acquisition-selector">Select Acquisition:</label>
+                            <select id="acquisition-selector" class="acquisition-dropdown">
+                                <option value="">Loading acquisitions...</option>
+                            </select>
+                        </div>
+                        <div class="acquisition-info" id="acquisition-info" style="display: none;">
+                            <span class="info-stat">
+                                <strong>Providers:</strong> <span id="selected-providers">-</span>
+                            </span>
+                            <span class="info-stat">
+                                <strong>Acquisition Year:</strong> <span id="selected-year">-</span>
+                            </span>
+                            <span class="info-stat">
+                                <strong>Years of Data:</strong> <span id="selected-years-span">-</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="acquisition-timeline-chart">
+                        <canvas id="acquisitionTimelineChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Provider-Level Risk Score Table -->
+                <div class="provider-timeline-section">
+                    <h4>2. Provider Risk Score Timeline</h4>
+                    <p class="section-description">
+                        Detailed view of all providers in the selected acquisition with risk scores over time
+                    </p>
+                    
+                    <div class="provider-timeline-controls">
+                        <div class="search-box">
+                            <input type="text" id="provider-search-input" placeholder="Search providers by name or NPI..." />
+                        </div>
+                        <div class="filter-group">
+                            <label for="specialty-filter">Filter by Specialty:</label>
+                            <select id="specialty-filter">
+                                <option value="">All Specialties</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="provider-timeline-summary" id="provider-timeline-summary" style="display: none;">
+                        <span class="summary-stat">
+                            <strong>Providers:</strong> <span id="timeline-provider-count">-</span>
+                        </span>
+                        <span class="summary-stat">
+                            <strong>Years:</strong> <span id="timeline-year-range">-</span>
+                        </span>
+                        <span class="summary-stat">
+                            <strong>Specialties:</strong> <span id="timeline-specialty-count">-</span>
+                        </span>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table provider-timeline-table" id="provider-timeline-table">
+                            <thead>
+                                <tr id="provider-timeline-headers">
+                                    <th>Provider</th>
+                                    <th>NPI</th>
+                                    <th>Specialty</th>
+                                    <!-- Year columns will be dynamically added here -->
+                                </tr>
+                            </thead>
+                            <tbody id="provider-timeline-body">
+                                <!-- Provider data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="provider-timeline-empty" id="provider-timeline-empty" style="display: none;">
+                        <p>Select an acquisition above to view provider risk score timeline</p>
+                    </div>
+                </div>
+
+                <!-- Provider-Level Slope Analysis -->
+                <div class="slope-analysis-section">
+                    <h4>3. Provider-Level Risk Acceleration</h4>
+                    <p class="section-description">
+                        Analysis of individual provider risk score slopes before and after acquisition
+                    </p>
+                    
+                    <div class="analysis-grid">
+                        <div class="analysis-chart">
+                            <h5>Slope Change Distribution</h5>
+                            <canvas id="slopeDistributionChart" style="height: 200px;"></canvas>
+                        </div>
+                        <div class="analysis-table">
+                            <h5>Acceleration Statistics</h5>
+                            <div class="table-responsive">
+                                <table class="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="acceleration-stats-table">
+                                        <!-- Acceleration statistics will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category-Specific Analysis -->
+                <div class="category-analysis-section">
+                    <h4>4. Analysis by Acquisition Category</h4>
+                    <div class="analysis-chart full-width">
+                        <canvas id="categoryComparisonChart" style="height: 250px;"></canvas>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="category-detailed-table">
+                            <thead>
+                                <tr>
+                                    <th>UNH Category</th>
+                                    <th>Providers Analyzed</th>
+                                    <th>Mean Risk Change (%)</th>
+                                    <th>Providers with Acceleration Data</th>
+                                    <th>Mean Acceleration (per year)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Category analysis will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Temporal Trends Analysis -->
+                <div class="temporal-trends-section">
+                    <h4>5. Temporal Trends by Acquisition Year</h4>
+                    <p class="section-description">
+                        Risk score evolution patterns across different acquisition cohorts
+                    </p>
+                    
+                    <div class="analysis-chart full-width">
+                        <canvas id="temporalTrendsChart" style="height: 250px;"></canvas>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="temporal-trends-table">
+                            <thead>
+                                <tr>
+                                    <th>Acquisition Year</th>
+                                    <th>Before Mean Risk Score</th>
+                                    <th>After Mean Risk Score</th>
+                                    <th>Change (%)</th>
+                                    <th>Providers Analyzed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Temporal trends will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Key Insights Summary -->
+                <div class="insights-section">
+                    <h4>6. Key Insights & Interpretation</h4>
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <h5>🎯 Primary Finding</h5>
+                            <p id="primary-finding">Risk scores show statistically significant decrease post-acquisition...</p>
+                        </div>
+                        <div class="insight-card">
+                            <h5>📈 Strategy Evolution</h5>
+                            <p id="strategy-evolution">2022 acquisitions show completely different pattern...</p>
+                        </div>
+                        <div class="insight-card">
+                            <h5>🔍 Data Quality</h5>
+                            <p id="data-quality-insight">Analysis covers 89% of UNH providers with sufficient history...</p>
+                        </div>
+                        <div class="insight-card">
+                            <h5>💡 Implications</h5>
+                            <p id="implications-insight">Results suggest improved care coordination under UNH...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Methodology Section -->
+                <div class="methodology-section">
+                    <h4>7. Analysis Methodology</h4>
+                    <div class="methodology-content">
+                        <div class="method-step">
+                            <h6>Data Sources</h6>
+                            <p>40,824 provider-year observations from UNH provider timeline analysis</p>
+                        </div>
+                        <div class="method-step">
+                            <h6>Statistical Methods</h6>
+                            <p>Two-sample t-tests, linear regression slope analysis, Cohen's d effect size</p>
+                        </div>
+                        <div class="method-step">
+                            <h6>Time Windows</h6>
+                            <p>Before: -2 to 0 years from acquisition | After: 0 to +5 years from acquisition</p>
+                        </div>
+                        <div class="method-step">
+                            <h6>Quality Controls</h6>
+                            <p>Minimum 3 observations per provider, outlier detection, significance testing</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ground Truth Validation Tab -->
+            <section id="ground-truth-tab" class="tab-content" style="display: none;">
+                <h3>Ground Truth Validation</h3>
+                <p class="tab-description">
+                    Comparison of our data-driven acquisition detection against known ground truth of 31 UNH acquisitions
+                </p>
+
+                <!-- Validation Summary -->
+                <div class="validation-summary">
+                    <div class="stats-grid">
+                        <div class="stat-card ground-truth-total">
+                            <h3 id="ground-truth-total-stat">31</h3>
+                            <p>Total Known UNH Acquisitions</p>
+                            <small>(2008-2024 Ground Truth)</small>
+                        </div>
+                        <div class="stat-card ground-truth-captured">
+                            <h3 id="ground-truth-captured-stat">-</h3>
+                            <p>Acquisitions Captured in Data</p>
+                            <small id="ground-truth-captured-percent">(-% Coverage)</small>
+                        </div>
+                        <div class="stat-card ground-truth-providers">
+                            <h3 id="ground-truth-providers-stat">-</h3>
+                            <p>Total Providers Identified</p>
+                            <small>Across All Captured Acquisitions</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acquisition Coverage Matrix -->
+                <div class="acquisition-coverage-section">
+                    <h4>Acquisition Coverage Matrix</h4>
+                    <div class="coverage-legend">
+                        <span class="legend-item captured">✅ Captured</span>
+                        <span class="legend-item missing">❌ Missing</span>
+                        <span class="legend-item partial">🟡 Partial</span>
+                    </div>
+                    
+                    <div id="ground-truth-table" class="table-responsive">
+                        <!-- Ground truth comparison table will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Umbrella Grouping Analysis -->
+                <div class="umbrella-analysis-section">
+                    <h4>Umbrella Organization Analysis</h4>
+                    <p class="section-description">
+                        Analysis of interconnected acquisitions (e.g., DaVita Medical Group ↔ Healthcare Partners ↔ Optum)
+                    </p>
+                    
+                    <div id="umbrella-grouping-chart" class="chart-container" style="height: 350px;">
+                        <canvas id="umbrellaChart"></canvas>
+                    </div>
+
+                    <div class="umbrella-groups">
+                        <div class="group-card">
+                            <h5>DaVita Medical Group Umbrella (2019)</h5>
+                            <div class="group-stats">
+                                <span class="group-stat">
+                                    <strong>Healthcare Partners:</strong> <span id="healthcare-partners-providers">-</span> providers
+                                </span>
+                                <span class="group-stat">
+                                    <strong>DaVita Medical:</strong> <span id="davita-medical-providers">-</span> providers
+                                </span>
+                                <span class="group-stat">
+                                    <strong>Optum (Related):</strong> <span id="optum-related-providers">-</span> providers
+                                </span>
+                                <span class="group-total">
+                                    <strong>Total Umbrella:</strong> <span id="davita-umbrella-total">-</span> providers
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="group-card">
+                            <h5>2018 Acquisition Cluster</h5>
+                            <div class="group-stats">
+                                <span class="group-stat">
+                                    <strong>The Polyclinic (WA):</strong> <span id="polyclinic-providers">-</span> providers
+                                </span>
+                                <span class="group-stat">
+                                    <strong>Reliant Medical Group (MA):</strong> <span id="reliant-providers">-</span> providers
+                                </span>
+                                <span class="group-total">
+                                    <strong>2018 Total:</strong> <span id="cluster-2018-total">-</span> providers
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Quality Assessment -->
+                <div class="data-quality-section">
+                    <h4>Data Quality Assessment</h4>
+                    <div class="quality-metrics">
+                        <div class="quality-metric">
+                            <span class="metric-label">Pattern Match Precision:</span>
+                            <span class="metric-value" id="pattern-precision">-</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span class="metric-label">Geographic Consistency:</span>
+                            <span class="metric-value" id="geographic-consistency">-</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span class="metric-label">Temporal Alignment:</span>
+                            <span class="metric-value" id="temporal-alignment">-</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span class="metric-label">Provider Count Validation:</span>
+                            <span class="metric-value" id="provider-count-validation">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Master Analysis Tab -->
+            <section id="master-analysis-tab" class="tab-content" style="display: none;">
+                <h3>🎯 Master Analysis: UNH Acquisition Effects on Provider Risk Score Growth</h3>
+                <p class="tab-description">
+                    <strong>Research Question:</strong> Do UNH-acquired providers accelerate or decelerate risk score changes after acquisition?<br>
+                    This comprehensive analysis compares providers in two ways: <em>(1) Before vs After acquisition</em> and <em>(2) UNH providers vs Similar peers</em>
+                </p>
+
+                <div id="master-analysis-loading" class="loading-message" style="display: none;">
+                    <p>Loading comprehensive master analysis...</p>
+                </div>
+
+                <!-- Executive Summary -->
+                <div class="master-executive-summary">
+                    <h4>🎯 Executive Summary</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="master-providers-analyzed">-</h3>
+                            <p>Providers Analyzed</p>
+                            <small>With sufficient before/after data</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-primary-conclusion">-</h3>
+                            <p>Primary Finding</p>
+                            <small id="master-statistical-significance">-</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-acceleration-pct">-</h3>
+                            <p>Providers Accelerating</p>
+                            <small>Post-acquisition risk growth</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-effect-size">-</h3>
+                            <p>Mean Acceleration</p>
+                            <small>Annual risk score change</small>
+                        </div>
+                    </div>
+                    
+                    <div class="master-key-findings">
+                        <h5>Key Findings</h5>
+                        <ul id="master-key-findings-list">
+                            <li>Loading findings...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- By Acquisition Analysis -->
+                <div class="master-acquisition-section">
+                    <h4>📊 Analysis by Individual Acquisition</h4>
+                    <p class="section-description">
+                        How do risk score effects vary across different UNH acquisitions?
+                    </p>
+                    
+                    <div class="chart-container">
+                        <canvas id="master-acquisition-chart" style="height: 300px;"></canvas>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="master-acquisition-table">
+                            <thead>
+                                <tr>
+                                    <th>Acquisition</th>
+                                    <th>Providers</th>
+                                    <th>Mean Acceleration</th>
+                                    <th>% Accelerating</th>
+                                    <th>Statistical Significance</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Acquisition analysis will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- By Specialty Analysis -->
+                <div class="master-specialty-section">
+                    <h4>🩺 Analysis by Medical Specialty</h4>
+                    <p class="section-description">
+                        Do acquisition effects vary by provider specialty?
+                    </p>
+                    
+                    <div class="chart-container">
+                        <canvas id="master-specialty-chart" style="height: 300px;"></canvas>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="master-specialty-table">
+                            <thead>
+                                <tr>
+                                    <th>Specialty</th>
+                                    <th>Providers</th>
+                                    <th>Mean Acceleration</th>
+                                    <th>Median Acceleration</th>
+                                    <th>% Accelerating</th>
+                                    <th>Statistical Significance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Specialty analysis will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- By Geography Analysis -->
+                <div class="master-geographic-section">
+                    <h4>🗺️ Analysis by Geographic Region</h4>
+                    <p class="section-description">
+                        Do acquisition effects vary by geographic location?
+                    </p>
+                    
+                    <div class="chart-container">
+                        <canvas id="master-geographic-chart" style="height: 300px;"></canvas>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="master-geographic-table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Providers</th>
+                                    <th>Mean Acceleration</th>
+                                    <th>Median Acceleration</th>
+                                    <th>% Accelerating</th>
+                                    <th>Statistical Significance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Geographic analysis will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statistical Summary -->
+                <div class="master-statistical-section">
+                    <h4>📈 Detailed Statistical Summary</h4>
+                    <div class="analysis-grid">
+                        <div class="analysis-chart">
+                            <h5>Before/After Analysis Distribution</h5>
+                            <canvas id="master-before-after-chart" style="height: 200px;"></canvas>
+                        </div>
+                        <div class="analysis-stats">
+                            <h5>Statistical Details</h5>
+                            <div class="stats-list">
+                                <div class="stat-row">
+                                    <span class="stat-label">Sample Size:</span>
+                                    <span class="stat-value" id="master-sample-size">-</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Mean Acceleration:</span>
+                                    <span class="stat-value" id="master-mean-acceleration">-</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">95% Confidence Interval:</span>
+                                    <span class="stat-value" id="master-confidence-interval">-</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">P-Value:</span>
+                                    <span class="stat-value" id="master-p-value">-</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Effect Size:</span>
+                                    <span class="stat-value" id="master-effect-magnitude">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Provider Results Sample -->
+                <div class="master-provider-results-section">
+                    <h4>👥 Individual Provider Results (Sample)</h4>
+                    <p class="section-description">
+                        Sample of individual provider analyses showing before/after and peer comparison results
+                    </p>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table" id="master-provider-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Specialty</th>
+                                    <th>State</th>
+                                    <th>Acquisition</th>
+                                    <th>Before/After Acceleration</th>
+                                    <th>vs Peers</th>
+                                    <th>Overall Classification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Provider results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Methodology -->
+                <div class="master-methodology-section">
+                    <h4>🔬 Analysis Methodology</h4>
+                    <div class="methodology-grid">
+                        <div class="method-card">
+                            <h5>Data Sources</h5>
+                            <ul id="master-data-sources">
+                                <li>Loading methodology...</li>
+                            </ul>
+                        </div>
+                        <div class="method-card">
+                            <h5>Before/After Analysis</h5>
+                            <ul id="master-before-after-method">
+                                <li>Loading methodology...</li>
+                            </ul>
+                        </div>
+                        <div class="method-card">
+                            <h5>Peer Comparison</h5>
+                            <ul id="master-peer-comparison-method">
+                                <li>Loading methodology...</li>
+                            </ul>
+                        </div>
+                        <div class="method-card">
+                            <h5>Statistical Testing</h5>
+                            <ul id="master-statistical-method">
+                                <li>Loading methodology...</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="master-limitations">
+                        <h5>Limitations & Considerations</h5>
+                        <ul id="master-limitations-list">
+                            <li>Loading limitations...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Data Quality -->
+                <div class="master-data-quality-section">
+                    <h4>📊 Data Quality & Coverage</h4>
+                    <div class="quality-stats-grid">
+                        <div class="stat-card">
+                            <h3 id="master-total-dataset-providers">-</h3>
+                            <p>Total Providers in Dataset</p>
+                            <small>All UNH acquisitions</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-data-coverage-pct">-</h3>
+                            <p>Data Coverage</p>
+                            <small>% with sufficient data for analysis</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-years-covered">-</h3>
+                            <p>Years Covered</p>
+                            <small>Timeline span</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="master-acquisitions-covered">-</h3>
+                            <p>Acquisitions Analyzed</p>
+                            <small>With sufficient provider data</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Provider Comparison Modal -->
+    <div id="provider-comparison-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-provider-name">Provider Comparison</h3>
+                <span class="modal-close" onclick="closeProviderComparisonModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="provider-info-section">
+                    <h4>Provider Information</h4>
+                    <div class="provider-info-grid">
+                        <div class="info-item">
+                            <strong>NPI:</strong> <span id="modal-provider-npi">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Specialty:</strong> <span id="modal-provider-specialty">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Location:</strong> <span id="modal-provider-location">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>UNH Acquisition:</strong> <span id="modal-provider-acquisition">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comparison-chart-section">
+                    <h4>Risk Score Comparison: UNH Provider vs Same-Specialty Peers</h4>
+                    <p class="chart-description">
+                        <strong>Research Question:</strong> Are UNH-acquired doctors increasing risk scores faster than peers in the same specialty and geography?
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="provider-comparison-chart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+                
+                <div class="comparison-stats-section">
+                    <h4>Statistical Comparison</h4>
+                    <div class="stats-grid" id="comparison-stats-grid">
+                        <!-- Stats will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="modal-loading" id="comparison-modal-loading" style="display: none;">
+                    <p>Loading provider comparison data...</p>
+                </div>
+                
+                <div class="modal-error" id="comparison-modal-error" style="display: none;">
+                    <p>Error loading comparison data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/unh_analyzer.js') }}?v={{ timestamp }}"></script>
+</body>
+</html> 

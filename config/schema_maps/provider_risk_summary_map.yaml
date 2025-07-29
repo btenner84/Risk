@@ -1,0 +1,49 @@
+# config/schema_maps/provider_risk_summary_map.yaml
+
+# This map is for processing Medicare Physician & Other Practitioners data
+# Focus: Extract provider-level risk scores for geographic analysis
+# Strategy: Aggregate to county-level to avoid processing 1.26M individual provider records
+
+canonical_schema: # Reduced schema focusing on geographic risk analysis
+  rendering_npi: str                    # Provider identifier
+  provider_state: str                   # State abbreviation  
+  provider_zip: str                     # ZIP code for county mapping
+  provider_type: str                    # Provider type/specialty
+  total_beneficiaries: Int64           # Total Medicare beneficiaries served
+  average_risk_score: float            # Key metric: Bene_Avg_Risk_Scre
+  dual_eligible_count: Int64           # Count of dual-eligible beneficiaries
+  # year: int # Will be added from filename
+
+# Aggregation strategy: Roll up to county-year level
+aggregated_output_schema:
+  state: str
+  county_name: str                     # Derived from ZIP to county mapping
+  fips_code: str                       # For linking to existing MA data
+  year: int
+  total_providers: int                 # Count of providers in county
+  total_medicare_beneficiaries: int    # Sum of beneficiaries
+  avg_provider_risk_score: float      # Weighted average of provider risk scores  
+  pct_dual_eligible: float            # Percentage dual-eligible
+  primary_provider_types: str          # Most common provider types
+
+raw_columns_map:
+  'Rndrng_NPI': 'rendering_npi'
+  'Rndrng_Prvdr_State_Abrvtn': 'provider_state'
+  'Rndrng_Prvdr_Zip5': 'provider_zip'
+  'Rndrng_Prvdr_Type': 'provider_type'
+  'Tot_Benes': 'total_beneficiaries'
+  'Bene_Avg_Risk_Scre': 'average_risk_score'
+  'Bene_Dual_Cnt': 'dual_eligible_count'
+
+# Processing configuration
+processing_config:
+  chunk_size: 50000                   # Process 50k rows at a time
+  min_beneficiaries: 11               # CMS suppression threshold
+  output_level: 'county_aggregated'   # Don't store individual provider records
+  memory_efficient: true              # Use streaming processing
+  
+# Quality filters
+data_quality_filters:
+  - 'total_beneficiaries >= 11'       # Remove suppressed data
+  - 'average_risk_score > 0'          # Remove invalid risk scores
+  - 'provider_state.notna()'          # Require valid state 

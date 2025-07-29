@@ -1,0 +1,87 @@
+# config/schema_maps/snp_report_map.yaml
+
+# This map is for processing the detailed listing within the
+# "Special Needs Plan Comprehensive Report" (e.g., SNP_YYYY_MM.xls/x)
+
+canonical_schema: # For the detailed plan rows before aggregation
+  contract_id: str
+  plan_id: str
+  organization_name_snp_file: str 
+  plan_name_snp_file: str
+  plan_type_snp_file: str         
+  segment_id_snp_file: str        
+  # geography_type_snp_file: str    # This seems less consistent, relying on Plan Geographic Name
+  state_snp_file: str             # From State(s) or Plan Geographic Name if state-like
+  enrollment_snp_file: Int64
+  snp_category: str               
+  snp_disease_category: str       
+  integration_status: str         
+  # year: int # Will be added from filename/context
+
+# Aggregated output by this ETL will be at contract-year level:
+# contract_id, year, contract_is_dual_eligible, contract_is_chronic_snp, contract_is_institutional_snp,
+# primary_plan_type_from_snp_file (most common for the contract in this file)
+
+yearly_configs:
+  default: # Default mapping for columns in the detailed section (primarily for older XLS files)
+    raw_columns_map:
+      'Contract Number': 'contract_id'
+      'Contract Name': 'organization_name_snp_file' # In older files, this is the Org Name
+      'Organization Type': 'plan_type_snp_file'    # In older files, this is often Local CCP, etc.
+      'Plan ID': 'plan_id'
+      'Segment ID': 'segment_id_snp_file' # Added based on 2015 screenshot
+      'Plan Name': 'plan_name_snp_file'
+      'Plan Type': 'plan_type_snp_file' # This is the general plan type like HMO, PPO in THIS file context
+      'Plan Geographic Name': 'state_snp_file' # For older files, this might contain state/county info. Script will try to parse state.
+      'State(s)': 'state_snp_file'           # If explicit State(s) column exists
+      'Plan Enrollment': 'enrollment_snp_file' # Added based on 2015 screenshot
+      'Special Needs Plan Type': 'snp_category'
+      'Specialty Diseases': 'snp_disease_category' # Added based on 2015 screenshot
+      'Integration Status': 'integration_status'
+      # 'Applicable Integrated Plan' # Can be added if needed for analysis
+
+    # Header row for the detailed plan listing.
+    # Based on 2015 screenshot, actual data headers start on row 17 (0-indexed: 16)
+    # The find_header_row_snp function will search from this row downwards.
+    header_search_start_row: 15 # Start searching for header around row 15 (0-indexed)
+    # expected_detail_header_start: ['Contract Number', 'Contract Name', 'Organization Type']
+    min_expected_columns_in_header: 8 # Min columns for detailed list in older files
+
+  "2022": # Specific overrides for 2022 SNP Report file (XLS) - KEY IS STRING
+    raw_columns_map:
+      # Inherits from default, but overrides for case differences or column name changes
+      'SEGMENT_ID': 'segment_id_snp_file' # Actual is uppercase in 2022 file
+      'Geographic Name': 'state_snp_file'    # 2022 uses this like 2023
+      # Other mappings can be added if they differ from default for 2022
+    header_search_start_row: 22 # Similar to 2023, header is lower down
+    min_expected_columns_in_header: 9
+
+  "2023": # Specific overrides for 2023 SNP Report file (XLSX) - KEY IS STRING
+    raw_columns_map:
+      # Default mappings from above are inherited unless overridden here
+      'Contract Number': 'contract_id'
+      'Contract Name': 'organization_name_snp_file' 
+      'Organization Type': 'plan_type_snp_file'    
+      'Plan ID': 'plan_id'
+      'SEGMENT_ID': 'segment_id_snp_file' # 2023 uses uppercase from screenshot
+      'Plan Name': 'plan_name_snp_file'
+      'Plan Type': 'plan_type_snp_file' 
+      'Geographic Name': 'state_snp_file'       # Override for 2023
+      'State(s)': 'state_snp_file'              # Explicit mapping for 2023
+      'Plan Enrollment': 'enrollment_snp_file' # Consistent with 2015, but 2023 YAML had 'Enrollment'
+      'Special Needs Plan Type': 'snp_category'
+      'Specialty Diseases': 'snp_disease_category' # Consistent with 2015
+      'Integration Status': 'integration_status'
+      'Applicable Integrated Plan': 'applicable_integrated_plan' # Added for 2023, ensure in canonical if used
+    header_search_start_row: 22 # For 2023 screenshot, header looked to be around row 23/24, so search from 22.
+    min_expected_columns_in_header: 9 # Min columns for detailed list in 2023 files
+
+# The ETL script (etl_snp_report.py) will perform the following:
+# 1. Read the detailed plan data using the mappings above.
+# 2. Standardize contract_id and plan_id.
+# 3. For each contract-year, determine:
+#    - contract_is_dual_eligible (boolean): True if any plan under the contract has snp_category related to "Dual Eligible".
+#    - contract_is_chronic_snp (boolean): True if any plan has snp_category "Chronic or Disabling Condition".
+#    - contract_is_institutional_snp (boolean): True if any plan has snp_category "Institutional".
+#    - dominant_plan_type_snp_file (string): The most frequent plan_type_snp_file for that contract in this report.
+# 4. Save this aggregated contract-year level data. 

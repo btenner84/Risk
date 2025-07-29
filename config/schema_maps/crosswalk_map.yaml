@@ -1,0 +1,106 @@
+canonical_schema:
+  previous_year_contract_id: str
+  previous_year_plan_id: str
+  previous_plan_name: str
+  current_year_contract_id: str
+  current_year_plan_id: str
+  current_plan_name: str
+  organization_name: str
+  # plan_name: str # Removed
+  crosswalk_status: str # e.g., Same, New, Discontinued, Mapped To, or from DESCRIPTION
+  # previous_year: int # Added by ETL script
+  # current_year: int  # Added by ETL script
+  # Other potential columns from raw files that might be useful if consistently available:
+  # segment_id: str # If applicable
+  # status: str # Removed. Use crosswalk_status
+  # Crosswalk files often have NCC (Non- कैलेंडर Contract) indicators or other notes
+  # crosswalk_notes: str # Example for any additional notes column
+
+  # Columns added during ETL:
+  # previous_year: int
+  # current_year: int
+
+yearly_configs:
+  default:
+    raw_columns_map:
+      # --- Mappings based on observed log data ---
+      'PREVIOUS_CONTRACT_ID': 'previous_year_contract_id'
+      'PREVIOUS_PLAN_ID': 'previous_year_plan_id'
+      'PREVIOUS_PLAN_NAME': 'previous_plan_name'
+      'CURRENT_CONTRACT_ID': 'current_year_contract_id'
+      'CURRENT_PLAN_ID': 'current_year_plan_id'
+      'CURRENT_PLAN_NAME': 'current_plan_name'
+      'DESCRIPTION': 'crosswalk_status' 
+      'STATUS': 'crosswalk_status' # For files that use STATUS explicitly
+
+      # --- Original Guesses (keep as fallbacks or for other files) ---
+      'PY Contract ID': 'previous_year_contract_id'
+      'Previous Contract ID': 'previous_year_contract_id'
+      'PY Contract Number': 'previous_year_contract_id'
+      'PY CONTRACTID': 'previous_year_contract_id'
+      'PY Plan ID': 'previous_year_plan_id'
+      'Previous Plan ID': 'previous_year_plan_id'
+      'PY Plan Number': 'previous_year_plan_id'
+      'PY PLANID': 'previous_year_plan_id'
+      
+      'CY Contract ID': 'current_year_contract_id'
+      'Current Contract ID': 'current_year_contract_id'
+      'CY Contract Number': 'current_year_contract_id'
+      'CY CONTRACTID': 'current_year_contract_id'
+      'CY Plan ID': 'current_year_plan_id'
+      'Current Plan ID': 'current_year_plan_id'
+      'CY Plan Number': 'current_year_plan_id'
+      'CY PLANID': 'current_year_plan_id'
+
+      'Organization Name': 'organization_name'
+      'ORG NAME': 'organization_name'
+      'Parent Organization': 'organization_name'
+      'Plan Name': 'current_plan_name' # Default "Plan Name" to current, PREVIOUS_PLAN_NAME is specific
+      'PLANNAME': 'current_plan_name'
+      
+      'Crosswalk Status': 'crosswalk_status'
+      'XWALK_STATUS': 'crosswalk_status'
+      # 'Status': 'crosswalk_status' # Already covered by 'STATUS'
+
+      'Contract ID Mapped To From PY': 'current_year_contract_id' 
+      'Plan ID Mapped To From PY': 'current_year_plan_id'
+      
+      'MA Contract': 'current_year_contract_id'
+      'MA Plan': 'current_year_plan_id'
+      'PDP Contract': 'current_year_contract_id'
+      'PDP Plan': 'current_year_plan_id'
+
+    # --- Sheet and Header Hints (Defaults, can be overridden by year) ---
+    # sheet_name: null # Let heuristic try, or specify regex like '.*XWALK.*' or specific name
+    # header_row_index: null # Let heuristic try, or specify e.g. 0 or 1
+    
+  # Example for a specific year if its structure is very different:
+  # 2016:
+  #   raw_columns_map:
+  #     'OldContract': 'previous_year_contract_id'
+  #     'OldPlan': 'previous_year_plan_id'
+  #     'NewContract': 'current_year_contract_id'
+  #     'NewPlan': 'current_year_plan_id'
+  #     'Official Name of Org': 'organization_name'
+  #     'TransitionType': 'crosswalk_status'
+  #   sheet_name: '2016_CrosswalkData'
+  #   header_row_index: 0
+
+# Note: The ETL script (`etl_crosswalks.py`) adds 'previous_year' and 'current_year' columns
+# based on the filename/context, so they are not typically mapped from raw columns here,
+# but are part of the final canonical schema. The canonical_schema definition in this file
+# should primarily list columns expected *from the file data itself* after mapping.
+# The script ensures these year columns are Int64.
+
+# Example for a specific year if its column names differ significantly from default
+# 2022:
+#   raw_columns_map:
+#     "PY Contract ID": "previous_contract_id"
+#     "PY Plan ID": "previous_plan_id"
+#     "CY Contract ID": "current_contract_id"
+#     "CY Plan ID": "current_plan_id"
+#     "XWalk Status": "status"
+#   sheet_name: "Crosswalk_2021_to_2022" # If sheet name is specific
+#   header_row_index: 1 # If header is on the second row
+
+# Add other year-specific overrides as needed. 
